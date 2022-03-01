@@ -19,8 +19,7 @@ public class CurrencyConverterApplication {
     }
 
     @Bean
-    ApplicationRunner init(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos)
-            throws ParserConfigurationException, IOException, SAXException {
+    ApplicationRunner init(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos) throws ParserConfigurationException, IOException, SAXException {
         CurrencyService.parse(currencyRepos, currencyValuesRepos);
         return args -> {
         };

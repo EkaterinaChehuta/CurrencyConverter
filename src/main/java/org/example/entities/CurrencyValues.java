@@ -8,10 +8,11 @@ import java.util.Date;
 @Entity
 @Table(name = "currency_values")
 public class CurrencyValues {
-    @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private double rubValue;
+    private double rubValue; //todo заменить на большие числа
 
     @Column(name = "value_date")
     private LocalDate date;

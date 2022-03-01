@@ -19,8 +19,9 @@ import java.util.Date;
 public class CurrencyService {
     private static LocalDate localDateFromDocument;
 
-    public static void parse(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos) throws ParserConfigurationException, IOException, SAXException {
-        String url = "https://www.cbr-xml-daily.ru/daily_utf8.xml";
+    public static Document getDocument() throws ParserConfigurationException, IOException, SAXException {
+        // Из за неполадо на сайте ЦБ использованны рекомендации с сайта https://www.cbr-xml-daily.ru/
+        String url = "https://www.cbr-xml-daily.ru/daily.xml"; // https://cbr.ru/scripts/XML_daily.asp?date_req=" + getDate();
 
         // Получение фабрики, чтобы после получить билдер документов.
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -34,6 +35,11 @@ public class CurrencyService {
         // Теперь у нас есть доступ ко всем элементам, каким нам нужно.
         Document document = builder.parse(url);
         document.getDocumentElement().normalize();
+        return document;
+    }
+
+    public static void parse(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos) throws ParserConfigurationException, IOException, SAXException {
+        Document document = getDocument();
 
         // получение даты из документа
         localDateFromDocument = getDateFromDocument(document);
@@ -49,15 +55,10 @@ public class CurrencyService {
             NodeList nodeList = node.getChildNodes();
 
             String numCode = nodeList.item(0).getTextContent();
-            System.out.println("......" + numCode);
             String charCode = nodeList.item(1).getTextContent();
-            System.out.println("......" + charCode);
             String name = nodeList.item(3).getTextContent();
-            System.out.println("......" + name);
             int nominal = Integer.parseInt(nodeList.item(2).getTextContent());
-            System.out.println("......" + nominal);
             double rubValue = Double.parseDouble(nodeList.item(4).getTextContent().replace(",", "."));
-            System.out.println("......" + rubValue);
 
             // Проверка на наличие валюты в базе
             Currency currency = currencyRepos.findByNumCodeAndCharCodeAndNameCurrency(numCode, charCode, name);
@@ -83,7 +84,7 @@ public class CurrencyService {
     }
 
     private static void saveRUB(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos) {
-        String numCode = "111";
+        String numCode = "643";
         String charCode = "RUB";
         int nominal = 1;
         String name = "Российский рубль";
@@ -99,7 +100,7 @@ public class CurrencyService {
             currencyRepos.save(currencyRUB);
         }
 
-        CurrencyValues currencyValuesRUB = currencyValuesRepos.findByCurrency(currencyRUB);
+        CurrencyValues currencyValuesRUB = currencyValuesRepos.findByCurrency(currencyRUB).get(0);
         if (currencyValuesRUB == null) {
             currencyValuesRUB = new CurrencyValues();
             currencyValuesRUB.setDate(localDateFromDocument);
@@ -116,7 +117,7 @@ public class CurrencyService {
     }
 
     // Получение даты из документа
-    private static LocalDate getDateFromDocument(Document document) {
+    public static LocalDate getDateFromDocument(Document document) {
         Node node = document.getElementsByTagName("ValCurs").item(0);
         LocalDate date = null;
         if (node.getNodeType() == Node.ELEMENT_NODE) {

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>Конвертер Валют</title>
+</head>
+<style>
+
+</style>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <h1>Конвертер валют</h1>
+            <form th:action="@{/convert}" th:object="${conversion}" th:method="post">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label>Отдаю</label>
+                        <select id="inputFrom" th:field="*{currencyFrom}" name="currencyFrom" class="form-control">
+                            <option value="0" selected disabled></option>
+                            <option th:each="currencyFrom: ${currencies}"
+                                    th:value="${currencyFrom.id}"
+                                    th:text="${currencyFrom.nameCurrency}"></option>
+                        </select>
+                        <input type="number" th:field="*{amount}" class="form-control" name="amount">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Получаю</label>
+                        <select id="inputTo" th:field="*{currencyTo}" name="currencyTo" class="form-control">
+                            <option value="0" selected disabled></option>
+                            <option th:each="currencyTo: ${currencies}"
+                                    th:value="${currencyTo.id}"
+                                    th:text="${currencyTo.nameCurrency}"></option>
+                        </select>
+                        <input type="number" class="form-control" id="result">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-sm-6 col-sm-offset-3">
+                            <input type="submit"
+                                   name="convert-submit"
+                                   id="convert-submit"
+                                   class="form-control btn btn-info"
+                                   value="Конвертировать"/>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div>
+        <h1>История</h1>
+        <table style="width: 50%" id="historyTable">
+            <thead>
+            <tr>
+                <th>Исходная валюта</th>
+                <th>Целевая валюта</th>
+                <th>Исходная сумма</th>
+                <th>Получаемая сумма</th>
+                <th>Дата</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="conversion: ${conversions}">
+                <th th:text="${conversion.currencyFrom.charCode}"></th>
+                <th th:text="${conversion.currencyTo.charCode}"></th>
+                <th th:text="${conversion.amount}"></th>
+                <th th:text="${conversion.result}"></th>
+                <th th:text="${conversion.date}"></th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

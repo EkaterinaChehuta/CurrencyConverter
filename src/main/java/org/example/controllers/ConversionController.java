@@ -1,7 +1,9 @@
 package org.example.controllers;
 
+import org.example.entities.Conversion;
+import org.example.repos.ConversionRepos;
 import org.example.repos.CurrencyRepos;
-import org.example.repos.CurrencyValuesRepos;
+import org.example.service.CalculateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,16 +17,23 @@ public class ConversionController {
     private CurrencyRepos currencyRepos;
 
     @Autowired
-    private CurrencyValuesRepos currencyValuesRepos;
+    private ConversionRepos conversionRepos;
+
+    @Autowired
+    CalculateService calculateService;
 
     @GetMapping("/convert")
     public String showConversionForm(Model model) {
         model.addAttribute("currencies", currencyRepos.findAll());
-        return "index";
+        model.addAttribute("conversion", new Conversion());
+        model.addAttribute("conversions", conversionRepos.findAll());
+        return "converter";
     }
 
     @PostMapping("/convert")
-    public String convert() {
-        return "redirect:/";
+    public String convert(Conversion conversion) {
+        double result = calculateService.getCalculationResult(conversion);
+
+        return "redirect:/convert";
     }
 }
