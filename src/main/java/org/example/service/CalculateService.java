@@ -34,7 +34,7 @@ public class CalculateService {
         Currency currencyTo = currencyRepos.getOne(conversion.getCurrencyTo().getId());
         int nominalTo = currencyTo.getNominal();
 
-        LocalDate date = getDateNow();
+        LocalDate date = LocalDate.now();
 
         // Запрос в БД на получение актуального курса на текущую дату
         CurrencyValues currencyValuesFrom = currencyValuesRepos.findByDateAndCurrency(date, currencyFrom);
@@ -60,6 +60,7 @@ public class CalculateService {
                     CurrencyService.parse(currencyRepos, currencyValuesRepos);
                 }
 
+                // Запрос в БД на получение курса
                 if (currencyValuesFrom == null) {
                     currencyValuesFrom = currencyValuesRepos.findByDateAndCurrency(localDateFromDocument, currencyFrom);
                 }
@@ -72,12 +73,24 @@ public class CalculateService {
         }
 
         int amount = conversion.getAmount();
-        double result = (amount * currencyValuesFrom.getRubValue() * nominalFrom) / (currencyValuesTo.getRubValue() * nominalTo);
+        double result;
 
+        // Расчет результата конвертации
+        if (currencyFrom.getCharCode().equals("RUB")) {
+            result = amount / (currencyValuesTo.getRubValue() / nominalTo);
+        } else if (currencyTo.getCharCode().equals("RUB")) {
+            result = amount * (currencyValuesFrom.getRubValue() / nominalFrom);
+        } else {
+            result = ((currencyValuesFrom.getRubValue() / nominalFrom) * amount)
+                    / (currencyValuesTo.getRubValue() / nominalTo);
+        }
+
+        // Запись запроса в базу
         conversion.setResult(result);
         conversion.setDate(LocalDate.now());  //todo заменить на timestamp?
         conversionRepos.save(conversion);
 
+        // Запись истории запроса в базу с учетом ставки по которой производилась конвертация
         History history = new History();
         history.setConversion(conversion);
         history.setCurrencyValuesFrom(currencyValuesFrom);
@@ -85,10 +98,5 @@ public class CalculateService {
         historyRepos.save(history);
 
         return result;
-    }
-
-    // Получение текущей даты
-    private LocalDate getDateNow() {
-        return LocalDate.now();
     }
 }

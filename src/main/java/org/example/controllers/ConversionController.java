@@ -4,6 +4,7 @@ import org.example.entities.Conversion;
 import org.example.repos.ConversionRepos;
 import org.example.repos.CurrencyRepos;
 import org.example.service.CalculateService;
+import org.example.service.HistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +22,7 @@ public class ConversionController {
 
     @Autowired
     CalculateService calculateService;
+
 
     @GetMapping("/convert")
     public String showConversionForm(Model model) {

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>История</title>
+</head>
+<style>
+.filter-container {
+    padding: 20px;
+    background-color: #eff1f5;
+}
+
+</style>
+<body>
+<div class="filter-container">
+    <input type="date" name="historyDate" form="filter"/>
+    <select name="currencyFromId" form="filter">
+        <option value="0" selected disabled></option>
+        <option th:each="currencyFrom: ${currencies}"
+                th:value="${currencyFrom.id}"
+                th:text="${currencyFrom.charCode} + ' ' + ${currencyFrom.nameCurrency}"></option>
+    </select>
+    <select name="currencyToId" form="filter">
+        <option value="0" selected disabled></option>
+        <option th:each="currencyTo: ${currencies}"
+                th:value="${currencyTo.id}"
+                th:text="${currencyTo.charCode} + ' ' + ${currencyTo.nameCurrency}"></option>
+    </select>
+    <form method="get" action="/history" id="filter">
+        <button type="submit">Показать</button>
+    </form>
+</div>
+<div class="history-container">
+    <h1>История</h1>
+    <table border="1">
+        <tr>
+            <th>Исходная валюта</th>
+            <th>Целевая валюта</th>
+            <th>Исходная сумма</th>
+            <th>Получаемая сумма</th>
+            <th>Дата</th>
+        </tr>
+        <tr th:each="conversion: ${conversions}">
+            <td th:text="${conversion.currencyFrom.charCode}"></td>
+            <td th:text="${conversion.currencyTo.charCode}"></td>
+            <td th:text="${conversion.amount}"></td>
+            <td th:text="${conversion.result}"></td>
+            <td th:text="${conversion.date}"></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>
