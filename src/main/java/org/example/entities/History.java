@@ -3,6 +3,7 @@ package org.example.entities;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "history")
 public class History {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,11 +13,11 @@ public class History {
     @JoinColumn(name = "conversion_id", referencedColumnName = "id")
     private Conversion conversion;
 
-    @OneToOne(targetEntity = Currency.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = CurrencyValues.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "currency_values_from_id", referencedColumnName = "id")
     private CurrencyValues currencyValuesFrom;
 
-    @OneToOne(targetEntity = Currency.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = CurrencyValues.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "currency_values_to_id", referencedColumnName = "id")
     private CurrencyValues currencyValuesTo;
 

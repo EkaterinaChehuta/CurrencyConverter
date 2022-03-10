@@ -24,6 +24,14 @@ public class Currency {
         this.nameCurrency = nameCurrency;
     }
 
+    public Currency(int id, String numCode, String charCode, int nominal, String nameCurrency) {
+        this.id = id;
+        this.numCode = numCode;
+        this.charCode = charCode;
+        this.nominal = nominal;
+        this.nameCurrency = nameCurrency;
+    }
+
     public int getId() {
         return id;
     }

@@ -32,3 +32,13 @@ CREATE TABLE IF NOT EXISTS history
     currency_values_from_id INT NOT NULL,
     currency_values_to_id INT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS average_conversion_currency_values
+(
+    id SERIAL PRIMARY KEY,
+    currency_one_id INT NOT NULL,
+    currency_two_id INT NOT NULL,
+    result_currency_one NUMERIC(1000, 4) NOT NULL,
+    result_currency_two NUMERIC(1000, 4) NOT NULL,
+    count INT NOT NULL
+);

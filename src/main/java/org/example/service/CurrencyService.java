@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class CurrencyService {
@@ -48,6 +49,8 @@ public class CurrencyService {
         NodeList currencyNode = document.getElementsByTagName("Valute");
 
         saveRUB(currencyRepos, currencyValuesRepos);
+
+        System.out.println(">>>>>>>>>>>>>" + document);
 
         // Перебор всех элементов
         for (int i = 0; i < currencyNode.getLength(); i++) {
@@ -100,7 +103,7 @@ public class CurrencyService {
             currencyRepos.save(currencyRUB);
         }
 
-        CurrencyValues currencyValuesRUB = currencyValuesRepos.findByCurrency(currencyRUB).get(0);
+        CurrencyValues currencyValuesRUB = currencyValuesRepos.findByCurrency(currencyRUB);
         if (currencyValuesRUB == null) {
             currencyValuesRUB = new CurrencyValues();
             currencyValuesRUB.setDate(localDateFromDocument);

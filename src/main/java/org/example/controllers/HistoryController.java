@@ -1,53 +1,49 @@
 package org.example.controllers;
 
 import org.example.entities.Conversion;
-import org.example.entities.Currency;
+import org.example.entities.History;
 import org.example.repos.ConversionRepos;
-import org.example.repos.CurrencyRepos;
-import org.example.service.HistoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.example.repos.HistoryRepos;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Controller
+@RestController
+@CrossOrigin(origins = "http://localhost:4200")
 public class HistoryController {
 
-    @Autowired
-    private ConversionRepos conversionRepos;
+    private final ConversionRepos conversionRepos;
+    private final HistoryRepos historyRepos;
 
-    @Autowired
-    private CurrencyRepos currencyRepos;
+    public HistoryController(ConversionRepos conversionRepos,
+                             HistoryRepos historyRepos) {
+        this.conversionRepos = conversionRepos;
+        this.historyRepos = historyRepos;
+    }
 
-    @Autowired
-    HistoryService historyService;
-
-    @GetMapping("/history")
-    public String historyFilter(@RequestParam(required = false) Integer currencyFromId,
-                                @RequestParam(required = false) Integer currencyToId,
-//                                @RequestParam(required = false) LocalDate dateFrom,
-                                Model model) {
+    @GetMapping("/history/{from_id}/{to_id}")
+    public List<History> getHistory(@PathVariable("from_id") Integer currencyFromId,
+                                    @PathVariable("to_id") Integer currencyToId) {
         List<Conversion> conversionList = conversionRepos.findAll();
 
-        if (currencyFromId != null) {
-            Currency currencyFrom = currencyRepos.getOne(currencyFromId);
+        if (currencyFromId != 0) {
             conversionList.removeIf(conversion -> (conversion.getCurrencyFrom().getId() != currencyFromId));
         }
-        if (currencyToId != null) {
-            Currency currencyTo = currencyRepos.getOne(currencyToId);
+
+        if (currencyToId != 0) {
             conversionList.removeIf(conversion -> (conversion.getCurrencyTo().getId() != currencyToId));
         }
 
-        model.addAttribute("conversions", conversionList);
-        model.addAttribute("currencies", currencyRepos.findAll());
+        List<History> historyList = new ArrayList<>();
 
-        return "history";
+        for (Conversion conversion : conversionList) {
+            History history = historyRepos.findByConversion(conversion);
+            if (history != null) {
+                historyList.add(history);
+            }
+        }
+
+        return historyList;
     }
 }

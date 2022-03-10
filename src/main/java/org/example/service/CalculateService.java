@@ -1,16 +1,12 @@
 package org.example.service;
 
-import org.example.entities.Conversion;
-import org.example.entities.Currency;
-import org.example.entities.CurrencyValues;
-import org.example.entities.History;
-import org.example.repos.ConversionRepos;
-import org.example.repos.CurrencyRepos;
-import org.example.repos.CurrencyValuesRepos;
-import org.example.repos.HistoryRepos;
+import org.example.entities.*;
+import org.example.repos.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CalculateService {
@@ -19,13 +15,15 @@ public class CalculateService {
     private final CurrencyValuesRepos currencyValuesRepos;
     private final ConversionRepos conversionRepos;
     private final HistoryRepos historyRepos;
+    private final AverageConversionCurrencyValuesRepos averageConversionCurrencyValuesRepos;
 
 
-    public CalculateService(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos, ConversionRepos conversionRepos, HistoryRepos historyRepos) {
+    public CalculateService(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos, ConversionRepos conversionRepos, HistoryRepos historyRepos, AverageConversionCurrencyValuesRepos averageConversionCurrencyValuesRepos) {
         this.currencyRepos = currencyRepos;
         this.currencyValuesRepos = currencyValuesRepos;
         this.conversionRepos = conversionRepos;
         this.historyRepos = historyRepos;
+        this.averageConversionCurrencyValuesRepos = averageConversionCurrencyValuesRepos;
     }
 
     public double getCalculationResult(Conversion conversion) {
@@ -42,10 +40,10 @@ public class CalculateService {
 
         // Проверка на рубль и получение ставки
         if (currencyFrom.getCharCode().equals("RUB")) {
-            currencyValuesFrom = currencyValuesRepos.findByCurrency(currencyTo).get(0);
+            currencyValuesFrom = currencyValuesRepos.findByCurrency(currencyTo);
         }
         if (currencyTo.getCharCode().equals("RUB")) {
-            currencyValuesTo = currencyValuesRepos.findByCurrency(currencyFrom).get(0);
+            currencyValuesTo = currencyValuesRepos.findByCurrency(currencyFrom);
         }
 
         // Если данные не актуальны
@@ -87,7 +85,7 @@ public class CalculateService {
 
         // Запись запроса в базу
         conversion.setResult(result);
-        conversion.setDate(LocalDate.now());  //todo заменить на timestamp?
+        conversion.setDate(LocalDate.now());
         conversionRepos.save(conversion);
 
         // Запись истории запроса в базу с учетом ставки по которой производилась конвертация
@@ -97,6 +95,87 @@ public class CalculateService {
         history.setCurrencyValuesTo(currencyValuesTo);
         historyRepos.save(history);
 
+        averageConversionCurrencyValue(currencyFrom, currencyTo, currencyValuesFrom, currencyValuesTo);
+
         return result;
+    }
+
+    // Расчет среднего курса конвертации
+    public void averageConversionCurrencyValue(Currency currencyOne, Currency currencyTwo, CurrencyValues currencyValuesOne, CurrencyValues currencyValuesTwo) {
+        //Пытаемся получить пару валют из базы
+        AverageConversionCurrencyValues averageConversionCurrencyValues = averageConversionCurrencyValuesRepos.findByCurrencyOneAndCurrencyTwo(currencyOne, currencyTwo);
+
+        double resultCurrencyOne;
+        double resultCurrencyTwo;
+        int count;
+        AverageConversionCurrencyValues getAverageConversionCurrencyValues;
+
+        // Если пара найдена
+        if (averageConversionCurrencyValues != null) {
+            // Получаем значения и пересчитываем
+            count = averageConversionCurrencyValues.getCount() + 1;
+            resultCurrencyOne = (averageConversionCurrencyValues.getResultCurrencyOne() + currencyValuesOne.getRubValue()) / count;
+            resultCurrencyTwo = (averageConversionCurrencyValues.getResultCurrencyTwo() + currencyValuesTwo.getRubValue()) / count;
+            getAverageConversionCurrencyValues = averageConversionCurrencyValuesRepos.getOne(averageConversionCurrencyValues.getId());
+            getAverageConversionCurrencyValues.setCount(count);
+            averageConversionCurrencyValues.setResultCurrencyOne(resultCurrencyOne);
+            averageConversionCurrencyValues.setResultCurrencyTwo(resultCurrencyTwo);
+            averageConversionCurrencyValuesRepos.save(getAverageConversionCurrencyValues);
+            return;
+        }
+
+        //Пытаемся получить пару валют из базы
+        averageConversionCurrencyValues = averageConversionCurrencyValuesRepos.findByCurrencyOneAndCurrencyTwo(currencyTwo, currencyOne);
+
+        // Если пара найдена
+        if (averageConversionCurrencyValues != null) {
+            // Получаем значения и пересчитываем
+            count = averageConversionCurrencyValues.getCount() + 1;
+            resultCurrencyOne = (averageConversionCurrencyValues.getResultCurrencyOne() + currencyValuesTwo.getRubValue()) / count;
+            resultCurrencyTwo = (averageConversionCurrencyValues.getResultCurrencyTwo() + currencyValuesOne.getRubValue()) / count;
+            getAverageConversionCurrencyValues = averageConversionCurrencyValuesRepos.getOne(averageConversionCurrencyValues.getId());
+            getAverageConversionCurrencyValues.setCount(count);
+            averageConversionCurrencyValues.setResultCurrencyOne(resultCurrencyOne);
+            averageConversionCurrencyValues.setResultCurrencyTwo(resultCurrencyTwo);
+            averageConversionCurrencyValuesRepos.save(getAverageConversionCurrencyValues);
+            return;
+        }
+
+        // Если не завершилась раньше, создаем новую запись в базу
+        averageConversionCurrencyValues = new AverageConversionCurrencyValues();
+        averageConversionCurrencyValues.setCount(1);
+        averageConversionCurrencyValues.setCurrencyOne(currencyOne);
+        averageConversionCurrencyValues.setCurrencyTwo(currencyTwo);
+        averageConversionCurrencyValues.setResultCurrencyOne(currencyValuesOne.getRubValue());
+        averageConversionCurrencyValues.setResultCurrencyTwo(currencyValuesTwo.getRubValue());
+        averageConversionCurrencyValuesRepos.save(averageConversionCurrencyValues);
+
+    }
+
+    // Расчет суммарного объёма конвертаций для пары валют за неделю
+    public List<Double> getWeeklySumConversionCurrencyValue(Currency currencyFrom,
+                                                            Currency currencyTo,
+                                                            LocalDate dateFrom) {
+        LocalDate dateTo = dateFrom.plusDays(7); //todo может упасть если от стартовой даты до текущей нет 7 дней
+        List<Conversion> conversionList = conversionRepos.findByCurrencyFromAndCurrencyToAndDateBetween
+                (currencyFrom, currencyTo, dateFrom, dateTo);
+
+        double sumFrom = 0;
+        double sumTo = 0;
+        History history;
+        // Проход по списку конвертаций
+        // Запрос в базу на получение истории по действию
+        // Сумирование ставок
+        for (Conversion conversion : conversionList) {
+            history = historyRepos.findByConversion(conversion);
+            sumFrom += history.getCurrencyValuesFrom().getRubValue();
+            sumTo += history.getCurrencyValuesTo().getRubValue();
+        }
+
+        List<Double> results = new ArrayList<>(); // todo заменить на сущность
+        results.add(sumFrom);
+        results.add(sumTo);
+
+        return results;
     }
 }

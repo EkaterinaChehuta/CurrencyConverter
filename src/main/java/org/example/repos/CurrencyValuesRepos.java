@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface CurrencyValuesRepos extends JpaRepository<CurrencyValues, Integer> {
     CurrencyValues findByDateAndCurrency(LocalDate date, Currency currency);
-    List<CurrencyValues> findByCurrency(Currency currency);
+    CurrencyValues findByCurrency(Currency currency);
     CurrencyValues findTopByOrderByDateDesc();
 }

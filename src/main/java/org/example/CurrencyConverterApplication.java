@@ -19,7 +19,9 @@ public class CurrencyConverterApplication {
     }
 
     @Bean
-    ApplicationRunner init(CurrencyRepos currencyRepos, CurrencyValuesRepos currencyValuesRepos) throws ParserConfigurationException, IOException, SAXException {
+    ApplicationRunner init(CurrencyRepos currencyRepos,
+                           CurrencyValuesRepos currencyValuesRepos) throws ParserConfigurationException, IOException, SAXException {
+        // Заполнение базы данных актуальными данными с сайта ЦБ при запуске приложения
         CurrencyService.parse(currencyRepos, currencyValuesRepos);
         return args -> {
         };

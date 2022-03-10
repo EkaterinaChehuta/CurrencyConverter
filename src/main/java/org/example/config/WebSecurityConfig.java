@@ -2,17 +2,18 @@ package org.example.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 @Configuration
-@EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/convert", "/history", "/history/filter").permitAll()
+                .antMatchers("/", "/convert", "/history/**", "/currency", "/statistics/**")
+                .permitAll();
+        http
+                .csrf().disable().authorizeRequests()
                 .anyRequest().authenticated();
     }
 }

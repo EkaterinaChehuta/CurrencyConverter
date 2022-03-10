@@ -10,9 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ConversionRepos extends JpaRepository<Conversion, Integer> {
-    List<Conversion> findByCurrencyFrom(Currency currencyFrom);
-    List<Conversion> findByCurrencyTo(Currency currencyTo);
-    List<Conversion> findByCurrencyFromAndCurrencyTo(Currency currencyFrom, Currency currencyTo);
     List<Conversion> findByCurrencyFromAndCurrencyToAndDateBetween(Currency currencyFrom, Currency currencyTo,
                                                                    LocalDate dateFrom, LocalDate dateTo);
 }
