@@ -153,29 +153,20 @@ public class CalculateService {
     }
 
     // Расчет суммарного объёма конвертаций для пары валют за неделю
-    public List<Double> getWeeklySumConversionCurrencyValue(Currency currencyFrom,
-                                                            Currency currencyTo,
-                                                            LocalDate dateFrom) {
+    public double getWeeklySumConversionCurrencyValue(Currency currencyFrom,
+                                                      Currency currencyTo,
+                                                      LocalDate dateFrom) {
         LocalDate dateTo = dateFrom.plusDays(7); //todo может упасть если от стартовой даты до текущей нет 7 дней
         List<Conversion> conversionList = conversionRepos.findByCurrencyFromAndCurrencyToAndDateBetween
                 (currencyFrom, currencyTo, dateFrom, dateTo);
 
-        double sumFrom = 0;
-        double sumTo = 0;
-        History history;
+        double sum = 0;
+
         // Проход по списку конвертаций
-        // Запрос в базу на получение истории по действию
-        // Сумирование ставок
-        for (Conversion conversion : conversionList) {
-            history = historyRepos.findByConversion(conversion);
-            sumFrom += history.getCurrencyValuesFrom().getRubValue();
-            sumTo += history.getCurrencyValuesTo().getRubValue();
+        for (Conversion c : conversionList) {
+            sum += c.getAmount();
         }
 
-        List<Double> results = new ArrayList<>(); // todo заменить на сущность
-        results.add(sumFrom);
-        results.add(sumTo);
-
-        return results;
+        return sum;
     }
 }
